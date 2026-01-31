@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Modern Rotating Clock</title>
+
+    <style>
+        :root {
+            --bg: #0f0f10;
+            --panel: #131313;
+            --muted: #7b7b7b;
+            --accent1: #00bcd4;
+            --accent2: #4caf50;
+            --accent3: #ff2d55;
+            --ring-gap: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Inter, system-ui, Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(1200px 600px at 15% 10%, rgba(255, 255, 255, 0.02), transparent 5%),
+                linear-gradient(180deg, #0b0b0b, #111111);
+            color: #eee;
+        }
+
+        .wrap {
+            width: 720px;
+            max-width: 95vw;
+            aspect-ratio: 1/1;
+            display: grid;
+            place-items: center;
+            position: relative;
+            opacity: 0;
+            transform: scale(.995);
+            transition: opacity .45s, transform .45s;
+        }
+
+        .wrap.ready {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .clock-stage {
+            position: relative;
+            width: 74%;
+            height: 74%;
+            min-width: 320px;
+            min-height: 320px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            box-shadow: inset 0 8px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .ring {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) rotate(0deg);
+            border-radius: 50%;
+            display: block;
+            transition: transform 0.9s cubic-bezier(.22, .9, .35, 1);
+            pointer-events: none;
+        }
+
+        .ring .item {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform-origin: 0 -50%;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+            font-size: 14px;
+            letter-spacing: 1px;
+            opacity: .7;
+            color: var(--muted);
+            transition: color .35s, opacity .35s, transform .35s;
+            pointer-events: none;
+        }
+
+        .ring .item.current {
+            color: #fff;
+            opacity: 1;
+            font-weight: 700;
+            text-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+        }
+
+        .ring.dates {
+            width: 86%;
+            height: 86%;
+        }
+
+        .ring.months {
+            width: 68%;
+            height: 68%;
+        }
+
+        .ring.days {
+            width: 52%;
+            height: 52%;
+        }
+
+        .arc {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            box-shadow: inset 0 0 0 12px rgba(255, 255, 255, 0.02);
+        }
+
+        .analog {
+            width: 36%;
+            height: 36%;
+            min-width: 110px;
+            min-height: 110px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .02), rgba(255, 255, 255, .01));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 30;
+            box-shadow: 0 6px 40px rgba(0, 0, 0, .6);
+            border: 1px solid rgba(255, 255, 255, .03);
+        }
+
+        .hand {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform-origin: 50% 90%;
+        }
+
+        .hand.hour {
+            width: 6px;
+            height: 36%;
+            background: #fff;
+        }
+
+        .hand.minute {
+            width: 4px;
+            height: 46%;
+            background: #fff;
+        }
+
+        .hand.second {
+            width: 2px;
+            height: 52%;
+            background: #fff;
+        }
+
+        .hub {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #111;
+            border: 3px solid white;
+            position: absolute;
+            z-index: 50;
+        }
+
+        .highlight-dot {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            opacity: .95;
+            pointer-events: none;
+        }
+
+        .dot-month {
+            background: var(--accent1);
+            top: 8%;
+        }
+
+        .dot-day {
+            background: var(--accent2);
+            top: 12%;
+        }
+
+        .dot-date {
+            background: var(--accent3);
+            top: 3.6%;
+        }
+
+        .title {
+            position: absolute;
+            top: 6%;
+            width: 100%;
+            text-align: center;
+            font-size: 20px;
+            color: #fff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap" id="wrap">
+        <div class="title">Clock Modern Way</div>
+
+        <div class="clock-stage">
+
+            <div class="ring dates" id="datesRing">
+                <div class="arc"></div>
+                <div class="highlight-dot dot-date"></div>
+            </div>
+
+            <div class="ring months" id="monthsRing">
+                <div class="arc"></div>
+                <div class="highlight-dot dot-month"></div>
+            </div>
+
+            <div class="ring days" id="daysRing">
+                <div class="arc"></div>
+                <div class="highlight-dot dot-day"></div>
+            </div>
+
+            <div class="analog">
+                <div class="hand hour" id="hourHand"></div>
+                <div class="hand minute" id="minuteHand"></div>
+                <div class="hand second" id="secondHand"></div>
+                <div class="hub"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        /* -----------------------------------------
+           Create ring items
+        ------------------------------------------*/
+        function createRingItems(container, labels) {
+            container.querySelectorAll(".item").forEach(el => el.remove());
+            const count = labels.length;
+
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement("div");
+                el.className = "item";
+                el.textContent = labels[i];
+                container.appendChild(el);
+            }
+
+            placeRingItems(container);
+        }
+
+        /* -----------------------------------------
+           Position items around circle
+        ------------------------------------------*/
+        function placeRingItems(container) {
+            const items = [...container.querySelectorAll(".item")];
+            if (!items.length) return;
+
+            const rect = container.getBoundingClientRect();
+            const radius = Math.min(rect.width, rect.height) / 2 - 22;
+            const step = 360 / items.length;
+
+            items.forEach((it, i) => {
+                const angle = i * step;
+                it.style.transform = `
+            translate(-50%, -50%)
+            rotate(${angle}deg)
+            translateY(-${radius}px)
+            rotate(${-angle}deg)
+        `;
+            });
+        }
+
+        /* -----------------------------------------
+           Rotate ring
+        ------------------------------------------*/
+        function rotateRingToIndex(container, index) {
+            const items = [...container.querySelectorAll(".item")];
+            const step = 360 / items.length;
+
+            const angle = -(index * step);
+            container.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+
+            items.forEach((it, idx) => it.classList.toggle("current", idx === index));
+        }
+
+        /* -----------------------------------------
+           Clock setup
+        ------------------------------------------*/
+        const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+        const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+        const dates = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0"));
+
+        const datesRing = document.getElementById("datesRing");
+        const monthsRing = document.getElementById("monthsRing");
+        const daysRing = document.getElementById("daysRing");
+
+        createRingItems(datesRing, dates);
+        createRingItems(monthsRing, months);
+        createRingItems(daysRing, days);
+
+        window.addEventListener("resize", () => {
+            placeRingItems(datesRing);
+            placeRingItems(monthsRing);
+            placeRingItems(daysRing);
+        });
+
+        /* -----------------------------------------
+           Analog hands
+        ------------------------------------------*/
+        const hourHand = document.getElementById("hourHand");
+        const minuteHand = document.getElementById("minuteHand");
+        const secondHand = document.getElementById("secondHand");
+
+        [hourHand, minuteHand, secondHand].forEach(h => {
+            h.style.transition = "transform 0.5s cubic-bezier(.22,.9,.35,1)";
+        });
+
+        /* -----------------------------------------
+           Highlight nearest item
+        ------------------------------------------*/
+        function highlightNearest(container) {
+            const items = [...container.querySelectorAll(".item")];
+            if (!items.length) return;
+
+            const rect = container.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + 6; // target top
+
+            let best = 0;
+            let bestDist = Infinity;
+
+            items.forEach((it, idx) => {
+                const r = it.getBoundingClientRect();
+                const x = r.left + r.width / 2;
+                const y = r.top + r.height / 2;
+
+                const d = (x - cx) ** 2 + (y - cy) ** 2;
+                if (d < bestDist) { bestDist = d; best = idx; }
+            });
+
+            items.forEach((it, idx) =>
+                it.classList.toggle("current", idx === best)
+            );
+        }
+
+        /* -----------------------------------------
+           Update clock
+        ------------------------------------------*/
+        function updateClock() {
+            const now = new Date();
+            const s = now.getSeconds();
+            const m = now.getMinutes();
+            const h = now.getHours();
+
+            const sDeg = s * 6;
+            const mDeg = m * 6 + s * 0.1;
+            const hDeg = (h % 12) * 30 + m * 0.5 + s * (0.5 / 60);
+
+            hourHand.style.transform = `translate(-50%, -50%) rotate(${hDeg}deg)`;
+            minuteHand.style.transform = `translate(-50%, -50%) rotate(${mDeg}deg)`;
+            secondHand.style.transform = `translate(-50%, -50%) rotate(${sDeg}deg)`;
+
+            rotateRingToIndex(datesRing, now.getDate() - 1);
+            rotateRingToIndex(monthsRing, now.getMonth());
+            rotateRingToIndex(daysRing, now.getDay());
+
+            highlightNearest(datesRing);
+            highlightNearest(monthsRing);
+            highlightNearest(daysRing);
+        }
+
+        window.onload = () => {
+            document.getElementById("wrap").classList.add("ready");
+            updateClock();
+            setInterval(updateClock, 1000);
+        };
+    </script>
+
+</body>
+
+</html>

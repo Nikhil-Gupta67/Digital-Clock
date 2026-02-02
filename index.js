@@ -1,6 +1,6 @@
            /* -----------------------------------------
            Create ring items
-        ------------------------------------------*/
+        -----------------------------------------*/
         function createRingItems(container, labels) {
             container.querySelectorAll(".item").forEach(el => el.remove());
             const count = labels.length;

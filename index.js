@@ -1,4 +1,4 @@
-           /* ----------------------------
+           /* ----
            Create ring items
         ---------------*/
         function createRingItems(container, labels) {

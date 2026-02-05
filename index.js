@@ -17,7 +17,7 @@
 
         /* -------------
            Position items around circle
-        ------------------------------------------*/
+        ---------------*/
         function placeRingItems(container) {
             const items = [...container.querySelectorAll(".item")];
             if (!items.length) return;

@@ -50,7 +50,7 @@
             items.forEach((it, idx) => it.classList.toggle("current", idx === index));
         }
 
-        /* -----------------------------------------
+        /* ----------
            Clock setup
         ------------------------------------------*/
         const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];

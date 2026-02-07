@@ -84,7 +84,7 @@
 
         /* -----------------------------------------
            Highlight nearest item
-        ------------------------------------------*/
+        ----------*/
         function highlightNearest(container) {
             const items = [...container.querySelectorAll(".item")];
             if (!items.length) return;
